@@ -23,12 +23,19 @@ export interface Person {
   roles: string[];
 }
 
+export interface SavedTeam {
+  id: string;
+  name: string;
+  slots: { role: string; person: string }[];
+}
+
 interface ChurchDoc {
   songs: ChurchSong[];
   people: Person[];
+  teams: SavedTeam[];
 }
 
-const emptyDoc: ChurchDoc = { songs: [], people: [] };
+const emptyDoc: ChurchDoc = { songs: [], people: [], teams: [] };
 const KEY = "sacred:global:planner";
 
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
@@ -110,6 +117,30 @@ export async function POST(req: Request) {
   } else if (action === "deletePerson") {
     if (!(await isAdmin())) return NextResponse.json({ error: "forbidden" }, { status: 403 });
     doc.people = doc.people.filter((p) => p.id !== str(body.id, 40));
+    await getRedis().set(KEY, doc);
+  } else if (action === "saveTeam") {
+    const name = str(body.name, 60);
+    if (!name) return NextResponse.json({ error: "name required" }, { status: 400 });
+    const slots = (Array.isArray(body.slots) ? body.slots : [])
+      .slice(0, 20)
+      .map((raw: unknown) => {
+        if (!raw || typeof raw !== "object") return null;
+        const t = raw as Record<string, unknown>;
+        const role = str(t.role, 40);
+        const person = str(t.person, 80);
+        return role || person ? { role, person } : null;
+      })
+      .filter((x: { role: string; person: string } | null): x is { role: string; person: string } => !!x);
+    const existing = doc.teams.find((t) => t.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      existing.slots = slots; // saving under the same name updates the team
+    } else if (doc.teams.length < 50) {
+      doc.teams.push({ id: newId("t"), name, slots });
+    }
+    await getRedis().set(KEY, doc);
+  } else if (action === "deleteTeam") {
+    if (!(await isAdmin())) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    doc.teams = doc.teams.filter((t) => t.id !== str(body.id, 40));
     await getRedis().set(KEY, doc);
   } else {
     return NextResponse.json({ error: "unknown action" }, { status: 400 });
