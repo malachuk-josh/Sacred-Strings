@@ -1,18 +1,28 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { pitchOf, noteName, preferFlat, SHAPE_FAMILIES } from "@/lib/music";
+import { pitchOf, noteName, preferFlat, triadTones, pitchToFreq, SHAPE_FAMILIES } from "@/lib/music";
+import { armAudio, unlockAudio, playChord } from "@/lib/audio";
 
 const KEYS = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
 
+function qualityOf(suffix: string): string {
+  const s = suffix.toLowerCase();
+  if (s.startsWith("dim") || s.startsWith("°")) return "dim";
+  if (s.startsWith("m") && !s.startsWith("maj")) return "m";
+  return "";
+}
+
 export default function CapoPage() {
   const [soundingKey, setSoundingKey] = useState("Bb");
-
-  // Transposer state
   const [fromKey, setFromKey] = useState("G");
   const [toKey, setToKey] = useState("A");
   const [chordInput, setChordInput] = useState("G  Em  C  D");
+
+  useEffect(() => {
+    armAudio();
+  }, []);
 
   const capoOptions = useMemo(() => {
     const sounding = pitchOf(soundingKey) ?? 0;
@@ -30,7 +40,7 @@ export default function CapoPage() {
     return (((t - f) % 12) + 12) % 12;
   }, [fromKey, toKey]);
 
-  const transposed = useMemo(() => {
+  const transposedChords = useMemo(() => {
     const flat = preferFlat(toKey);
     return chordInput
       .trim()
@@ -38,13 +48,28 @@ export default function CapoPage() {
       .filter(Boolean)
       .map((chord) => {
         const m = chord.match(/^([A-Ga-g][#b]?)(.*)$/);
-        if (!m) return chord;
+        if (!m) return { name: chord, root: null as number | null, quality: "" };
         const root = pitchOf(m[1]);
-        if (root === null) return chord;
-        return noteName((root + shift) % 12, flat) + m[2];
-      })
-      .join("   ");
+        if (root === null) return { name: chord, root: null, quality: "" };
+        const newRoot = (root + shift) % 12;
+        return { name: noteName(newRoot, flat) + m[2], root: newRoot, quality: qualityOf(m[2]) };
+      });
   }, [chordInput, shift, toKey]);
+
+  const transposedText = transposedChords.map((c) => c.name).join("   ");
+
+  const playChords = async () => {
+    await unlockAudio();
+    let when = 0;
+    for (const c of transposedChords) {
+      if (c.root === null) continue;
+      const tones = triadTones(c.root, c.quality);
+      const freqs = tones.map((t) => pitchToFreq(t, 3));
+      freqs.push(pitchToFreq(c.root, 4));
+      playChord(freqs, 1.0, when);
+      when += 1.0;
+    }
+  };
 
   return (
     <div className="mx-auto max-w-2xl px-5 pt-16 pb-10 lg:px-10 lg:pt-10">
@@ -126,8 +151,14 @@ export default function CapoPage() {
         </label>
 
         <div className="mt-5 rounded-[12px] p-4" style={{ background: "linear-gradient(155deg,#F3E7D4,#EFE0C9)", border: "1px solid #E5D8C0" }}>
-          <div className="kicker mb-2 text-[11px] text-bronze">In {toKey} {shift > 0 ? `(+${shift} semitones)` : "(same key)"}</div>
-          <div className="font-mono text-lg font-semibold text-espresso">{transposed || "—"}</div>
+          <div className="mb-2 flex items-center justify-between">
+            <span className="kicker text-[11px] text-bronze">In {toKey} {shift > 0 ? `(+${shift} semitones)` : "(same key)"}</span>
+            <button onClick={playChords} className="flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-cream" style={{ background: "#5C3A1E" }}>
+              <svg width="9" height="11" viewBox="0 0 16 18"><path d="M2 2l12 7-12 7V2z" fill="#F5E6D0" /></svg>
+              Hear it
+            </button>
+          </div>
+          <div className="font-mono text-lg font-semibold text-espresso">{transposedText || "—"}</div>
         </div>
       </section>
     </div>
