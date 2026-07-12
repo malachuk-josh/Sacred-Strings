@@ -49,7 +49,8 @@ export default function LooperPage() {
         const c = chords[chordIdx];
         strum(guitarTriadFreqs(c.root, c.quality), { stagger: 0.04 });
       }
-      playClick(withinChord === 0);
+      // 6 beats per chord reads as compound (6/8) time: lighter accent on beat 4.
+      playClick(withinChord === 0 || (beatsPerChord === 6 && withinChord === 3));
       beatRef.current = beat + 1;
     };
     onBeat();
@@ -139,10 +140,11 @@ export default function LooperPage() {
 
         <Field label="Beats per chord">
           <div className="flex gap-2">
-            {[2, 4, 8].map((b) => (
+            {[2, 3, 4, 6, 8].map((b) => (
               <Chip key={b} active={b === beatsPerChord} onClick={() => setBeatsPerChord(b)}>{b}</Chip>
             ))}
           </div>
+          <p className="mt-1.5 text-xs text-faint">3 = waltz-time hymns · 6 = flowing 6/8 ballads</p>
         </Field>
       </div>
     </div>

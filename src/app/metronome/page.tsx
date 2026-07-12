@@ -4,8 +4,16 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { armAudio, unlockAudio, playClick } from "@/lib/audio";
 
+const SIGNATURES = [
+  { label: "2/4", beats: 2 },
+  { label: "3/4", beats: 3 },
+  { label: "4/4", beats: 4 },
+  { label: "6/8", beats: 6 },
+];
+
 export default function MetronomePage() {
   const [bpm, setBpm] = useState(60);
+  const [beatsPerBar, setBeatsPerBar] = useState(4);
   const [playing, setPlaying] = useState(false);
   const [beat, setBeat] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -22,17 +30,20 @@ export default function MetronomePage() {
     }
     const interval = 60000 / bpm;
     const tick = () => {
-      const accent = beatRef.current % 4 === 0;
+      const within = beatRef.current % beatsPerBar;
+      // 6/8 is compound time: two groups of three, so beat 4 gets a lighter accent too.
+      const accent = within === 0 || (beatsPerBar === 6 && within === 3);
       playClick(accent);
-      setBeat(beatRef.current % 4);
+      setBeat(within);
       beatRef.current += 1;
     };
+    beatRef.current = 0;
     tick();
     timerRef.current = setInterval(tick, interval);
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [playing, bpm]);
+  }, [playing, bpm, beatsPerBar]);
 
   const toggle = async () => {
     if (!playing) {
@@ -49,9 +60,23 @@ export default function MetronomePage() {
       <p className="mb-8 text-sm text-muted">Start slow, then build up. Steady time is the heart of worship rhythm.</p>
 
       <div className="rounded-[22px] p-8 text-center text-cream" style={{ background: "radial-gradient(circle at 50% 38%,#4A2E18 0%,#2C1810 60%,#1A0E08 100%)", boxShadow: "0 16px 36px rgba(44,24,16,.28)" }}>
-        <div className="mb-8 flex justify-center gap-3">
-          {[0, 1, 2, 3].map((i) => (
+        <div className="mb-6 flex justify-center gap-3">
+          {Array.from({ length: beatsPerBar }, (_, i) => (
             <span key={i} className="h-3.5 w-3.5 rounded-full transition-all" style={{ background: playing && beat === i ? "#D4A96A" : "rgba(255,255,255,.18)", transform: playing && beat === i ? "scale(1.3)" : "scale(1)" }} />
+          ))}
+        </div>
+
+        {/* time signature */}
+        <div className="mb-6 flex justify-center gap-2">
+          {SIGNATURES.map((s) => (
+            <button
+              key={s.label}
+              onClick={() => setBeatsPerBar(s.beats)}
+              className="rounded-full px-4 py-1.5 text-xs font-bold transition-colors"
+              style={beatsPerBar === s.beats ? { background: "#D4A96A", color: "#2C1810" } : { background: "rgba(255,255,255,.1)", color: "#C9B49A" }}
+            >
+              {s.label}
+            </button>
           ))}
         </div>
 
