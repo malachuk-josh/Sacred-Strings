@@ -142,10 +142,18 @@ export default function LessonPage() {
 
         <div className="pb-36 pt-6">
           {/* objective */}
-          <p className="mb-6 rounded-[12px] border border-border-warm bg-white p-4 text-sm text-cocoa">
+          <p className="mb-4 rounded-[12px] border border-border-warm bg-white p-4 text-sm text-cocoa">
             <span className="kicker mr-2 text-[10px] text-bronze">Goal</span>
             {lesson.objective}
           </p>
+
+          {/* scripture */}
+          {lesson.scripture && (
+            <div className="mb-6 rounded-[14px] border-l-2 p-4" style={{ borderColor: "#D4A96A", background: "linear-gradient(155deg,#F3E7D4,#EFE0C9)" }}>
+              <p className="font-display text-[17px] italic leading-snug text-cocoa">&ldquo;{lesson.scripture.text}&rdquo;</p>
+              <p className="kicker mt-2 text-[11px] text-bronze">{lesson.scripture.ref} · KJV</p>
+            </div>
+          )}
 
           {mode === "Learn" && (
             <>

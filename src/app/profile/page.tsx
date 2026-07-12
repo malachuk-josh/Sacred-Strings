@@ -159,7 +159,7 @@ export default function ProfilePage() {
           </div>
 
           <div className="rounded-[18px] p-6 text-center" style={{ background: "linear-gradient(155deg,#F3E7D4,#EFE0C9)", border: "1px solid #E5D8C0" }}>
-            <p className="font-display text-lg italic text-cocoa">&ldquo;Whatever you do, work at it with all your heart, as working for the Lord.&rdquo;</p>
+            <p className="font-display text-lg italic text-cocoa">&ldquo;And whatsoever ye do, do it heartily, as to the Lord, and not unto men.&rdquo;</p>
             <p className="kicker mt-2 text-xs text-faint">Colossians 3:23</p>
           </div>
         </>

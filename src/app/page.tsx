@@ -7,6 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import { ALL_LESSONS, MODULES } from "@/lib/curriculum";
 import type { Progress } from "@/lib/progress";
 import { defaultProgress } from "@/lib/progress";
+import { verseOfTheDay } from "@/lib/verses";
 
 function greeting() {
   const h = new Date().getHours();
@@ -22,6 +23,7 @@ const PlayIcon = ({ size = 16, color = "#2C1810" }: { size?: number; color?: str
 export default function TodayPage() {
   const { user, isSignedIn } = useUser();
   const [progress, setProgress] = useState<Progress>(defaultProgress);
+  const verse = verseOfTheDay();
 
   useEffect(() => {
     if (!isSignedIn) return;
@@ -81,8 +83,8 @@ export default function TodayPage() {
 
       {/* Verse (mobile) */}
       <div className="mb-6 border-l-2 pl-3.5 lg:hidden" style={{ borderColor: "#D4A96A" }}>
-        <p className="font-display text-[18px] italic leading-snug text-chestnut">&ldquo;Sing to him a new song; play skillfully, and shout for joy.&rdquo;</p>
-        <p className="kicker mt-1.5 text-xs text-faint">Psalm 33:3</p>
+        <p className="font-display text-[18px] italic leading-snug text-chestnut">&ldquo;{verse.text}&rdquo;</p>
+        <p className="kicker mt-1.5 text-xs text-faint">{verse.ref}</p>
       </div>
 
       {/* Continue card / hero */}
@@ -169,8 +171,8 @@ export default function TodayPage() {
         <div className="flex flex-col gap-5">
           <div className="rounded-[18px] border border-border-warm-2 p-6" style={{ background: "linear-gradient(155deg,#F3E7D4,#EFE0C9)" }}>
             <div className="kicker mb-3 text-[11px] text-bronze">Verse of the day</div>
-            <p className="font-display text-[23px] italic leading-snug text-cocoa">&ldquo;Sing to him a new song; play skillfully, and shout for joy.&rdquo;</p>
-            <p className="kicker mt-3 text-[13px] text-faint">Psalm 33:3</p>
+            <p className="font-display text-[23px] italic leading-snug text-cocoa">&ldquo;{verse.text}&rdquo;</p>
+            <p className="kicker mt-3 text-[13px] text-faint">{verse.ref}</p>
           </div>
           <div className="rounded-[18px] border border-border-warm bg-white p-5">
             <h3 className="mb-3.5 font-display text-xl font-semibold text-espresso">Up next</h3>
