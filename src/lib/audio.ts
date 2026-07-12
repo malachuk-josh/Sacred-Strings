@@ -89,6 +89,30 @@ export function playTone(freq: number, dur = 1.5): void {
   osc.stop(c.currentTime + dur + 0.1);
 }
 
+// Strum a chord: pluck each string in turn (low to high) with a gentle decay,
+// through a lowpass for a warmer, more guitar-like tone.
+export function strum(freqs: number[], stagger = 0.035, dur = 1.8): void {
+  const c = ensureCtx();
+  freqs.forEach((f, i) => {
+    const t0 = c.currentTime + i * stagger;
+    const osc = c.createOscillator();
+    const gain = c.createGain();
+    const filter = c.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.value = 2600;
+    osc.type = "triangle";
+    osc.frequency.value = f;
+    gain.gain.setValueAtTime(0.0001, t0);
+    gain.gain.exponentialRampToValueAtTime(0.16, t0 + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(c.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.1);
+  });
+}
+
 // Play a chord (array of frequencies) as a soft pad, optionally offset by `when` seconds.
 export function playChord(freqs: number[], dur = 1.2, when = 0): void {
   const c = ensureCtx();

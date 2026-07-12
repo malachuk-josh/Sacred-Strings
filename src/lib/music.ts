@@ -1,4 +1,5 @@
 // Small music-theory helper shared by the Capo/Transposer and Progression Looper.
+import type { ChordShape } from "./curriculum";
 
 export const SHARP = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 export const FLAT = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
@@ -53,6 +54,29 @@ export function triadTones(root: number, quality: string): number[] {
 export function pitchToFreq(pitch: number, octave = 3): number {
   const midi = pitch + 12 * (octave + 1); // C-1 = 0
   return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+export function midiToFreq(midi: number): number {
+  return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+// Standard-tuning open-string MIDI notes, low E to high E (string index 0..5).
+export const OPEN_STRING_MIDI = [40, 45, 50, 55, 59, 64];
+
+// Resolve a chord shape into the actual sounding MIDI notes, low string to high.
+export function chordVoicing(shape: ChordShape): number[] {
+  const midis: number[] = [];
+  for (let s = 0; s < 6; s++) {
+    if (shape.muted?.includes(s)) continue;
+    const dot = shape.dots.find((d) => d.s === s);
+    let fret: number | null = null;
+    if (dot) fret = dot.fret;
+    else if (shape.barre && s >= shape.barre.from && s <= shape.barre.to) fret = shape.barre.fret;
+    else if (shape.open.includes(s)) fret = 0;
+    if (fret === null) continue;
+    midis.push(OPEN_STRING_MIDI[s] + fret);
+  }
+  return midis;
 }
 
 export const MAJOR_KEYS = ["C", "G", "D", "A", "E", "F", "Bb", "Eb"];
