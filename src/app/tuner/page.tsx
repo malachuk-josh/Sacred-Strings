@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { armAudio, unlockAudio, playTone } from "@/lib/audio";
+import { armAudio, unlockAudio, pluck } from "@/lib/audio";
 
 // Standard tuning reference tones (Hz), low to high.
 const STRINGS = [
@@ -22,7 +22,9 @@ export default function TunerPage() {
   const play = (freq: number) => {
     // armAudio() already unlocked on first touch; unlockAudio() is idempotent.
     void unlockAudio();
-    playTone(freq);
+    // Pluck the reference string twice, like tuning against a real guitar.
+    pluck(freq, 0, 0.6);
+    pluck(freq, 1.6, 0.6);
   };
 
   return (

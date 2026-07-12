@@ -2,8 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { pitchOf, noteName, preferFlat, triadTones, pitchToFreq, SHAPE_FAMILIES } from "@/lib/music";
-import { armAudio, unlockAudio, playChord } from "@/lib/audio";
+import { pitchOf, noteName, preferFlat, guitarTriadFreqs, SHAPE_FAMILIES } from "@/lib/music";
+import { armAudio, unlockAudio, strum } from "@/lib/audio";
 
 const KEYS = ["C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
 
@@ -63,11 +63,8 @@ export default function CapoPage() {
     let when = 0;
     for (const c of transposedChords) {
       if (c.root === null) continue;
-      const tones = triadTones(c.root, c.quality);
-      const freqs = tones.map((t) => pitchToFreq(t, 3));
-      freqs.push(pitchToFreq(c.root, 4));
-      playChord(freqs, 1.0, when);
-      when += 1.0;
+      strum(guitarTriadFreqs(c.root, c.quality), { when });
+      when += 1.3;
     }
   };
 

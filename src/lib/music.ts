@@ -1,5 +1,5 @@
 // Small music-theory helper shared by the Capo/Transposer and Progression Looper.
-import type { ChordShape } from "./curriculum";
+import type { ChordShape } from "./chords";
 
 export const SHARP = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"];
 export const FLAT = ["C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab", "A", "Bb", "B"];
@@ -58,6 +58,17 @@ export function pitchToFreq(pitch: number, octave = 3): number {
 
 export function midiToFreq(midi: number): number {
   return 440 * Math.pow(2, (midi - 69) / 12);
+}
+
+// A guitar-register spread voicing for an abstract triad (used when we have a
+// chord name but no fingered shape): bass root, root, fifth, octave, tenth.
+export function guitarTriadFreqs(root: number, quality: string): number[] {
+  const rootMidi = 48 + ((root % 12) + 12) % 12; // C3..B3
+  const third = quality === "m" || quality === "dim" ? 3 : 4;
+  const fifth = quality === "dim" ? 6 : 7;
+  const bass = rootMidi - 12 >= 40 ? rootMidi - 12 : rootMidi; // stay on the neck
+  const midis = [bass, rootMidi, rootMidi + fifth, rootMidi + 12, rootMidi + 12 + third];
+  return [...new Set(midis)].map(midiToFreq);
 }
 
 // Standard-tuning open-string MIDI notes, low E to high E (string index 0..5).

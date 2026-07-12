@@ -1,4 +1,4 @@
-import type { ChordShape } from "@/lib/curriculum";
+import type { ChordShape } from "@/lib/chords";
 
 // Fretboard geometry: 6 strings, a 3-fret window.
 const STRING_X = [20, 40, 60, 80, 100, 120];
