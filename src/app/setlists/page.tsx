@@ -45,9 +45,15 @@ interface Person {
   name: string;
   roles: string[];
 }
+interface SavedTeam {
+  id: string;
+  name: string;
+  slots: TeamSlot[];
+}
 interface ChurchDoc {
   songs: ChurchSong[];
   people: Person[];
+  teams: SavedTeam[];
 }
 
 const KEYS = ["", "C", "Db", "D", "Eb", "E", "F", "F#", "G", "Ab", "A", "Bb", "B"];
@@ -67,7 +73,7 @@ const fmtDate = (iso: string) =>
 export default function SetlistsPage() {
   const { isSignedIn, isLoaded } = useUser();
   const [doc, setDoc] = useState<PlannerDoc>({ setlists: [], songFavs: [] });
-  const [church, setChurch] = useState<ChurchDoc>({ songs: [], people: [] });
+  const [church, setChurch] = useState<ChurchDoc>({ songs: [], people: [], teams: [] });
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<"idle" | "saving" | "saved">("idle");
@@ -82,6 +88,9 @@ export default function SetlistsPage() {
   const [newPersonRoles, setNewPersonRoles] = useState<string[]>([]);
   const [newSlotIdx, setNewSlotIdx] = useState<number | null>(null);
   const [newSlotName, setNewSlotName] = useState("");
+  const [savingTeam, setSavingTeam] = useState(false);
+  const [teamName, setTeamName] = useState("");
+  const [ssQuery, setSsQuery] = useState("");
   const loadedRef = useRef(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -101,7 +110,7 @@ export default function SetlistsPage() {
         if (cancelled) return;
         if (p?.doc) setDoc(p.doc);
         if (c?.doc) {
-          setChurch(c.doc);
+          setChurch({ songs: [], people: [], teams: [], ...c.doc });
           setIsAdmin(!!c.isAdmin);
         }
         loadedRef.current = true;
@@ -140,7 +149,7 @@ export default function SetlistsPage() {
     });
     if (r.ok) {
       const d = await r.json();
-      if (d?.doc) setChurch(d.doc);
+      if (d?.doc) setChurch({ songs: [], people: [], teams: [], ...d.doc });
       return d?.doc as ChurchDoc | undefined;
     }
     return undefined;
@@ -246,6 +255,12 @@ export default function SetlistsPage() {
     if (existing) setEditingId(existing.id);
     else createSetlist(iso);
   };
+
+  // Everyone, alphabetically — used by the roster and every person picker.
+  const sortedPeople = useMemo(
+    () => [...church.people].sort((a, b) => a.name.localeCompare(b.name)),
+    [church.people]
+  );
 
   const sortedSetlists = useMemo(() => {
     const today = todayIso();
@@ -399,10 +414,14 @@ export default function SetlistsPage() {
                       className="flex-1 rounded-[8px] border border-border-warm bg-parchment px-2 py-1.5 text-xs text-espresso outline-none"
                     >
                       <option value="">— who? —</option>
-                      {church.people.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
+                      {sortedPeople.map((p) => <option key={p.id} value={p.name}>{p.name}</option>)}
                       <option value="__new__">+ New person…</option>
                     </select>
                   )}
+                  <div className="flex flex-col">
+                    <button disabled={i === 0} onClick={() => updateSetlist(editing.id, (s) => { const team = [...(s.team ?? [])]; [team[i - 1], team[i]] = [team[i], team[i - 1]]; return { ...s, team }; })} className="px-1 text-xs text-bronze disabled:opacity-25" aria-label="Move up">▲</button>
+                    <button disabled={i === (editing.team?.length ?? 0) - 1} onClick={() => updateSetlist(editing.id, (s) => { const team = [...(s.team ?? [])]; [team[i + 1], team[i]] = [team[i], team[i + 1]]; return { ...s, team }; })} className="px-1 text-xs text-bronze disabled:opacity-25" aria-label="Move down">▼</button>
+                  </div>
                   <button
                     onClick={() => updateSetlist(editing.id, (s) => ({ ...s, team: (s.team ?? []).filter((_, ti) => ti !== i) }))}
                     className="px-1 text-lg leading-none text-faint"
@@ -418,6 +437,54 @@ export default function SetlistsPage() {
               >
                 + Add a role
               </button>
+
+              {/* saved teams: load + save */}
+              <div className="mt-1 flex flex-wrap items-center gap-2">
+                {church.teams.length > 0 && (
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      const t = church.teams.find((x) => x.id === e.target.value);
+                      if (t) updateSetlist(editing.id, (s) => ({ ...s, team: t.slots.map((sl) => ({ ...sl })) }));
+                    }}
+                    className="rounded-[10px] border border-border-warm bg-white px-2.5 py-1.5 text-xs font-semibold text-chestnut outline-none"
+                  >
+                    <option value="">Load a saved team…</option>
+                    {[...church.teams].sort((a, b) => a.name.localeCompare(b.name)).map((t) => (
+                      <option key={t.id} value={t.id}>{t.name} ({t.slots.length})</option>
+                    ))}
+                  </select>
+                )}
+                {(editing.team?.filter((t) => t.person).length ?? 0) > 0 && (
+                  savingTeam ? (
+                    <span className="flex gap-1">
+                      <input
+                        autoFocus
+                        value={teamName}
+                        onChange={(e) => setTeamName(e.target.value)}
+                        placeholder="Team name (e.g. Team A)"
+                        className="w-[160px] rounded-[10px] border border-bronze bg-white px-2.5 py-1.5 text-xs text-espresso outline-none"
+                      />
+                      <button
+                        onClick={async () => {
+                          const name = teamName.trim();
+                          if (name) await churchPost({ action: "saveTeam", name, slots: (editing.team ?? []).filter((t) => t.person || t.role) });
+                          setSavingTeam(false);
+                          setTeamName("");
+                        }}
+                        className="rounded-[10px] px-3 text-xs font-bold text-cream"
+                        style={{ background: "#5C3A1E" }}
+                      >
+                        Save
+                      </button>
+                    </span>
+                  ) : (
+                    <button onClick={() => setSavingTeam(true)} className="rounded-[10px] border border-border-warm bg-white px-2.5 py-1.5 text-xs font-semibold text-bronze">
+                      Save as team…
+                    </button>
+                  )
+                )}
+              </div>
             </div>
           </div>
 
@@ -527,17 +594,27 @@ export default function SetlistsPage() {
                 </p>
               )}
               {query.trim().length > 1 && (
-                <button
-                  onClick={async () => {
-                    const title = query.trim();
-                    await churchPost({ action: "addSong", title, author: "" });
-                    updateSetlist(editing.id, (s) => ({ ...s, songs: [...s.songs, { title, author: "Unknown" }] }));
-                    setQuery("");
-                  }}
-                  className="rounded-[12px] border border-dashed border-bronze/50 px-3 py-2.5 text-sm font-semibold text-bronze"
-                >
-                  + Add &ldquo;{query.trim()}&rdquo; to the church library
-                </button>
+                <>
+                  <button
+                    onClick={async () => {
+                      const title = query.trim();
+                      await churchPost({ action: "addSong", title, author: "" });
+                      updateSetlist(editing.id, (s) => ({ ...s, songs: [...s.songs, { title, author: "Unknown" }] }));
+                      setQuery("");
+                    }}
+                    className="rounded-[12px] border border-dashed border-bronze/50 px-3 py-2.5 text-sm font-semibold text-bronze"
+                  >
+                    + Add &ldquo;{query.trim()}&rdquo; to the church library
+                  </button>
+                  <a
+                    href={songselectSearchUrl(query.trim())}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rounded-[12px] border border-border-warm bg-white px-3 py-2.5 text-center text-sm font-semibold text-chestnut"
+                  >
+                    Search SongSelect for &ldquo;{query.trim()}&rdquo; ↗
+                  </a>
+                </>
               )}
             </div>
           </div>
@@ -547,6 +624,32 @@ export default function SetlistsPage() {
         <div className="mt-4">
           {/* calendar */}
           <MiniCalendar month={calMonth} setMonth={setCalMonth} marks={marks} onPick={pickDate} />
+
+          {/* standalone SongSelect search */}
+          <div className="mt-5 rounded-[18px] border border-border-warm bg-white p-4">
+            <div className="kicker mb-2 text-[12px] text-bronze">Search SongSelect by CCLI</div>
+            <div className="flex gap-2">
+              <input
+                value={ssQuery}
+                onChange={(e) => setSsQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && ssQuery.trim()) window.open(songselectSearchUrl(ssQuery.trim()), "_blank", "noopener");
+                }}
+                placeholder="Any song, author, or lyric…"
+                className="w-full min-w-0 rounded-[10px] border border-border-warm bg-parchment px-3 py-2 text-sm text-espresso outline-none focus:border-bronze placeholder:text-faint-2"
+              />
+              <a
+                href={ssQuery.trim() ? songselectSearchUrl(ssQuery.trim()) : "https://songselect.ccli.com"}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex flex-none items-center rounded-[10px] px-4 text-sm font-bold text-cream"
+                style={{ background: "linear-gradient(135deg,#5C3A1E,#2C1810)" }}
+              >
+                Search ↗
+              </a>
+            </div>
+            <p className="mt-2 text-[11px] text-faint">Opens SongSelect in a new tab — sign in there with the church&apos;s CCLI account for charts.</p>
+          </div>
 
           <button onClick={() => createSetlist()} className="mb-5 mt-5 w-full rounded-[14px] py-3.5 text-center text-sm font-bold text-cream" style={{ background: "linear-gradient(135deg,#5C3A1E,#2C1810)", boxShadow: "0 8px 20px rgba(44,24,16,.25)" }}>
             + New Setlist
@@ -592,7 +695,7 @@ export default function SetlistsPage() {
               <p className="mb-3 text-sm text-muted">No team members yet — add the people who serve.</p>
             )}
             <div className="flex flex-col gap-2">
-              {church.people.map((p) => (
+              {sortedPeople.map((p) => (
                 <div key={p.id} className="flex items-center gap-2">
                   <span className="flex h-8 w-8 flex-none items-center justify-center rounded-full text-xs font-bold text-espresso" style={{ background: "linear-gradient(145deg,#E8C78E,#B8834A)" }}>
                     {p.name.slice(0, 1).toUpperCase()}
@@ -607,6 +710,27 @@ export default function SetlistsPage() {
                 </div>
               ))}
             </div>
+
+            {/* saved teams */}
+            {church.teams.length > 0 && (
+              <div className="mt-4 border-t border-border-warm pt-4">
+                <div className="kicker mb-2 text-[11px] text-muted">Saved teams</div>
+                <div className="flex flex-col gap-1.5">
+                  {[...church.teams].sort((a, b) => a.name.localeCompare(b.name)).map((t) => (
+                    <div key={t.id} className="flex items-center gap-2">
+                      <span className="min-w-0 flex-1 truncate text-sm font-semibold text-espresso">{t.name}</span>
+                      <span className="flex-none text-xs text-muted">
+                        {t.slots.filter((sl) => sl.person).length} member{t.slots.filter((sl) => sl.person).length === 1 ? "" : "s"}
+                      </span>
+                      {isAdmin && (
+                        <button onClick={() => churchPost({ action: "deleteTeam", id: t.id })} className="px-1 text-base text-faint" aria-label="Delete team">×</button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <p className="mt-1.5 text-[11px] text-faint">Load a saved team inside any setlist&apos;s Team section.</p>
+              </div>
+            )}
 
             {/* add person */}
             <div className="mt-4 border-t border-border-warm pt-4">
