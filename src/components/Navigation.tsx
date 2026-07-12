@@ -52,6 +52,13 @@ const TracksIcon = ({ active }: IconProps) => (
     <path d="M3 12h2l2-6 3 12 3-9 2 3h6" stroke={stroke(active)} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+const SetlistIcon = ({ active }: IconProps) => (
+  <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+    <path d="M4 6h10M4 12h8M4 18h6" stroke={stroke(active)} strokeWidth="1.8" strokeLinecap="round" />
+    <path d="M18 16V7l3-1" stroke={stroke(active)} strokeWidth="1.8" strokeLinecap="round" />
+    <circle cx="16" cy="17" r="2.4" stroke={stroke(active)} strokeWidth="1.8" />
+  </svg>
+);
 
 const FlameIcon = () => (
   <svg width="22" height="25" viewBox="0 0 15 17" fill="none">
@@ -63,6 +70,7 @@ const navItems = [
   { href: "/", label: "Today", desktopLabel: "Today", Icon: TodayIcon },
   { href: "/journey", label: "Journey", desktopLabel: "Your Journey", Icon: JourneyIcon },
   { href: "/songs", label: "Songs", desktopLabel: "Song Library", Icon: SongsIcon },
+  { href: "/setlists", label: "Setlists", desktopLabel: "Setlist Planner", Icon: SetlistIcon },
   { href: "/tracks", label: "Tracks", desktopLabel: "Practice Tracks", Icon: TracksIcon },
   { href: "/looper", label: "Looper", desktopLabel: "Progression Looper", Icon: LooperIcon },
   { href: "/capo", label: "Capo", desktopLabel: "Capo & Keys", Icon: CapoIcon },
