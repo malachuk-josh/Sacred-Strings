@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useUser } from "@clerk/nextjs";
 
 interface Exercise {
   id: string;
@@ -23,22 +24,53 @@ const exercises: Exercise[] = [
 ];
 
 export default function PracticePage() {
+  const { isSignedIn } = useUser();
   const [activeExercise, setActiveExercise] = useState<Exercise | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const [isRunning, setIsRunning] = useState(false);
   const [completed, setCompleted] = useState<Set<string>>(new Set());
 
+  // Load any already-completed exercises for signed-in users.
+  useEffect(() => {
+    if (!isSignedIn) return;
+    let cancelled = false;
+    fetch("/api/progress")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (!cancelled && data?.progress?.completedExercises) {
+          setCompleted(new Set<string>(data.progress.completedExercises));
+        }
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [isSignedIn]);
+
   useEffect(() => {
     if (!isRunning || timeLeft <= 0) {
       if (timeLeft === 0 && isRunning && activeExercise) {
-        setCompleted((prev) => new Set(prev).add(activeExercise.id));
+        const finished = activeExercise;
+        setCompleted((prev) => new Set(prev).add(finished.id));
         setIsRunning(false);
+        // Persist for signed-in users; browsing without an account still works locally.
+        if (isSignedIn) {
+          fetch("/api/progress", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              action: "completeExercise",
+              id: finished.id,
+              minutes: Math.round(finished.duration / 60),
+            }),
+          }).catch(() => {});
+        }
       }
       return;
     }
     const timer = setInterval(() => setTimeLeft((t) => t - 1), 1000);
     return () => clearInterval(timer);
-  }, [isRunning, timeLeft, activeExercise]);
+  }, [isRunning, timeLeft, activeExercise, isSignedIn]);
 
   const startExercise = useCallback((exercise: Exercise) => {
     setActiveExercise(exercise);
