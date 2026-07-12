@@ -1,16 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Playfair_Display } from "next/font/google";
+import { Cormorant_Garamond, DM_Sans } from "next/font/google";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" });
+const cormorant = Cormorant_Garamond({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-cormorant",
+});
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-dmsans",
+});
 
 export const metadata: Metadata = {
   title: "Sacred Strings",
-  description: "Classical guitar trainer for worship",
+  description: "A classical guitar trainer for worship",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -20,7 +30,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#e2b857",
+  themeColor: "#2c1810",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -33,17 +43,12 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-      <html lang="en" className={`${inter.variable} ${playfair.variable} h-full antialiased`}>
-        <head>
-          <link rel="apple-touch-icon" href="/icons/icon-192.svg" />
-        </head>
-        <body className="min-h-full flex flex-col">
+      <html lang="en" className={`${cormorant.variable} ${dmSans.variable} h-full`}>
+        <body className="min-h-full">
           <ServiceWorkerRegistration />
-          <div className="min-h-screen bg-background text-foreground">
+          <div className="min-h-screen bg-background text-foreground lg:pl-64">
             <Navigation />
-            <main className="pb-20 lg:pb-0 lg:pl-64">
-              {children}
-            </main>
+            <main className="pb-24 lg:pb-0">{children}</main>
           </div>
         </body>
       </html>
