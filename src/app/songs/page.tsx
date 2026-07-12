@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { SONGS, type Song } from "@/lib/curriculum";
+import Link from "next/link";
+import { SONGS, type Song } from "@/lib/songs";
 
 const FILTERS = ["All", "Beginner", "Intermediate"] as const;
 
@@ -20,18 +21,16 @@ export default function SongsPage() {
       <div className="text-sm font-medium text-muted">Play what you&apos;re learning</div>
       <h1 className="mb-5 font-display text-[33px] font-semibold leading-tight text-espresso lg:text-[40px]">Worship Songs</h1>
 
-      {/* search */}
       <div className="mb-4 flex items-center gap-2.5 rounded-[12px] border border-border-warm bg-white px-3.5 py-3">
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="#B8A585" strokeWidth="1.6" /><path d="M11 11l3 3" stroke="#B8A585" strokeWidth="1.6" strokeLinecap="round" /></svg>
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search hymns &amp; songs"
+          placeholder="Search hymns & songs"
           className="w-full bg-transparent text-sm text-espresso outline-none placeholder:text-faint-2"
         />
       </div>
 
-      {/* filter chips */}
       <div className="mb-6 flex gap-2">
         {FILTERS.map((f) => (
           <button
@@ -45,10 +44,9 @@ export default function SongsPage() {
         ))}
       </div>
 
-      {/* song rows */}
       <div className="flex flex-col gap-3">
         {songs.map((s) => (
-          <SongRow key={s.title} song={s} />
+          <SongRow key={s.id} song={s} />
         ))}
         {songs.length === 0 && <p className="text-sm text-muted">No songs match that search.</p>}
       </div>
@@ -59,7 +57,7 @@ export default function SongsPage() {
 function SongRow({ song }: { song: Song }) {
   const intermediate = song.difficulty === "Intermediate";
   return (
-    <div className="flex items-center gap-3.5 rounded-[16px] border border-border-warm bg-white p-3.5">
+    <Link href={`/songs/${song.id}`} className="flex items-center gap-3.5 rounded-[16px] border border-border-warm bg-white p-3.5 transition-all hover:border-gold/50">
       <span
         className="flex h-[46px] w-[46px] flex-none items-center justify-center rounded-[12px]"
         style={{ background: intermediate ? "linear-gradient(145deg,#C89B5C,#8B5E3C)" : "linear-gradient(145deg,#E8C78E,#B8834A)" }}
@@ -73,7 +71,7 @@ function SongRow({ song }: { song: Song }) {
       <div className="min-w-0 flex-1">
         <div className="font-display text-[18px] font-semibold text-espresso">{song.title}</div>
         <div className="mt-0.5 flex items-center gap-2">
-          <span className="text-xs text-muted">Key of {song.key}</span>
+          <span className="text-xs text-muted">Key of {song.key}{song.capo ? ` · capo ${song.capo}` : ""}</span>
           <span className="h-[3px] w-[3px] rounded-full" style={{ background: "#C9B49A" }} />
           <span
             className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
@@ -83,7 +81,7 @@ function SongRow({ song }: { song: Song }) {
           </span>
         </div>
       </div>
-      <span className="text-[11px] font-semibold text-faint">{song.chords} chords</span>
-    </div>
+      <span className="text-[11px] font-semibold text-faint">{song.chords.length} chords</span>
+    </Link>
   );
 }
