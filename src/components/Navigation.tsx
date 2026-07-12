@@ -103,10 +103,18 @@ const MProfileIcon = ({ active }: { active: boolean }) => (
     <path d="M4 20c0-4 4-6 8-6s8 2 8 6" stroke={mColor(active)} strokeWidth="1.8" strokeLinecap="round" />
   </svg>
 );
+const MSetlistIcon = ({ active }: { active: boolean }) => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+    <path d="M4 6h10M4 12h8M4 18h6" stroke={mColor(active)} strokeWidth="1.8" strokeLinecap="round" />
+    <path d="M18 16V7l3-1" stroke={mColor(active)} strokeWidth="1.8" strokeLinecap="round" />
+    <circle cx="16" cy="17" r="2.4" stroke={mColor(active)} strokeWidth="1.8" />
+  </svg>
+);
 const mobileTabs = [
   { href: "/", label: "Today", Icon: MTodayIcon },
   { href: "/journey", label: "Journey", Icon: MJourneyIcon },
   { href: "/songs", label: "Songs", Icon: MSongsIcon },
+  { href: "/setlists", label: "Setlists", Icon: MSetlistIcon },
   { href: "/profile", label: "Profile", Icon: MProfileIcon },
 ];
 
