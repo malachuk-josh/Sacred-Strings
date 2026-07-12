@@ -289,7 +289,7 @@ export const MODULES: Module[] = [
           "Loop G – Dsus4 – Em7 – Cadd9 at 66 BPM, one bar each, swelling louder each pass then back down.",
           "Record 30 seconds on your phone and listen: did the tempo creep when you got louder?",
         ],
-        playAlong: "Set the Progression Looper to 1-5-6-4 in G at 66 BPM and hold driving eighths against it — the loop is your accountability.",
+        playAlong: "Open Practice Tracks and play 'Still Waters' at 66 BPM — hold driving eighths against the pad and drums. The track is your accountability.",
         tip: "If you can stay steady at 66 BPM, every faster song feels easy. Slow tempo control is the most underrated skill on a worship team.",
       },
       {
@@ -311,7 +311,7 @@ export const MODULES: Module[] = [
           "Anthem drill: set the Metronome to 126 BPM and play straight down-strums through 1-5-6-4, clean and relaxed.",
           "Alternate one pass pushed and one pass on the beat, and hear how the push changes the song's energy.",
         ],
-        playAlong: "Loop 1-5-6-4 in G at 72 BPM pushing every change; then jump the tempo to 126 and simplify to down-strums.",
+        playAlong: "Open Practice Tracks: push every change on 'Ever Faithful' at 84 BPM, then switch to 'Risen King' at 126 and simplify to down-strums.",
         tip: "Count pushes out loud ('4-AND') until they're automatic. A push you have to think about lands late — a felt push lands early, which is the whole point.",
       },
     ],

@@ -126,6 +126,7 @@ export default function TodayPage() {
       <div className="lg:hidden">
         <div className="kicker mb-3 text-[13px] text-muted">Practice Tools</div>
         <div className="grid grid-cols-3 gap-3">
+          <ToolTile href="/tracks" label="Tracks" icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 12h2l2-6 3 12 3-9 2 3h6" stroke="#C89B5C" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>} />
           <ToolTile href="/looper" label="Looper" icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M17 3l3 3-3 3M4 11v-1a4 4 0 014-4h12M7 21l-3-3 3-3M20 13v1a4 4 0 01-4 4H4" stroke="#C89B5C" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>} />
           <ToolTile href="/capo" label="Capo & Keys" icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 4v16M8 8l4-4 4 4M8 16l4 4 4-4" stroke="#C89B5C" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>} />
           <ToolTile href="/metronome" label="Metronome" icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#C89B5C" strokeWidth="1.6" /><path d="M12 12V6M12 12l4 3" stroke="#5C3A1E" strokeWidth="1.6" strokeLinecap="round" /></svg>} />

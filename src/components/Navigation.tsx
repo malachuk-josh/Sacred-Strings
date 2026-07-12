@@ -47,6 +47,11 @@ const LooperIcon = ({ active }: IconProps) => (
     <path d="M17 3l3 3-3 3M4 11v-1a4 4 0 014-4h12M7 21l-3-3 3-3M20 13v1a4 4 0 01-4 4H4" stroke={stroke(active)} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
   </svg>
 );
+const TracksIcon = ({ active }: IconProps) => (
+  <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
+    <path d="M3 12h2l2-6 3 12 3-9 2 3h6" stroke={stroke(active)} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
 const FlameIcon = () => (
   <svg width="22" height="25" viewBox="0 0 15 17" fill="none">
@@ -58,6 +63,7 @@ const navItems = [
   { href: "/", label: "Today", desktopLabel: "Today", Icon: TodayIcon },
   { href: "/journey", label: "Journey", desktopLabel: "Your Journey", Icon: JourneyIcon },
   { href: "/songs", label: "Songs", desktopLabel: "Song Library", Icon: SongsIcon },
+  { href: "/tracks", label: "Tracks", desktopLabel: "Practice Tracks", Icon: TracksIcon },
   { href: "/looper", label: "Looper", desktopLabel: "Progression Looper", Icon: LooperIcon },
   { href: "/capo", label: "Capo", desktopLabel: "Capo & Keys", Icon: CapoIcon },
   { href: "/tuner", label: "Tuner", desktopLabel: "Tuner", Icon: TunerIcon },
