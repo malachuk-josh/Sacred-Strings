@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
+import { armAudio, unlockAudio, playTone } from "@/lib/audio";
 
 // Standard tuning reference tones (Hz), low to high.
 const STRINGS = [
@@ -14,25 +15,14 @@ const STRINGS = [
 ];
 
 export default function TunerPage() {
-  const ctxRef = useRef<AudioContext | null>(null);
+  useEffect(() => {
+    armAudio();
+  }, []);
 
   const play = (freq: number) => {
-    if (!ctxRef.current) {
-      ctxRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
-    }
-    const ctx = ctxRef.current;
-    ctx.resume();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.value = freq;
-    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.25, ctx.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.6);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 1.7);
+    // armAudio() already unlocked on first touch; unlockAudio() is idempotent.
+    void unlockAudio();
+    playTone(freq);
   };
 
   return (
@@ -54,7 +44,9 @@ export default function TunerPage() {
         ))}
       </div>
 
-      <p className="mt-6 text-center text-xs text-faint">A full microphone tuner is coming soon.</p>
+      <p className="mt-6 text-center text-xs text-faint">
+        On iPhone, make sure the ring/silent switch is on and the volume is up. A full microphone tuner is coming soon.
+      </p>
     </div>
   );
 }

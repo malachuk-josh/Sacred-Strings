@@ -11,6 +11,7 @@ import {
   triadTones,
   pitchToFreq,
 } from "@/lib/music";
+import { armAudio, unlockAudio, playChord, playClick } from "@/lib/audio";
 
 export default function LooperPage() {
   const [keyName, setKeyName] = useState("G");
@@ -20,10 +21,12 @@ export default function LooperPage() {
   const [playing, setPlaying] = useState(false);
   const [step, setStep] = useState(0);
 
-  const ctxRef = useRef<AudioContext | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const beatRef = useRef(0);
-  const padRef = useRef<{ osc: OscillatorNode; gain: GainNode }[]>([]);
+
+  useEffect(() => {
+    armAudio();
+  }, []);
 
   const chords = useMemo(() => {
     const root = pitchOf(keyName) ?? 7;
@@ -32,52 +35,12 @@ export default function LooperPage() {
     return PROGRESSIONS[progIndex].degrees.map((deg) => diatonic[deg - 1]);
   }, [keyName, progIndex]);
 
-  const playPad = (chordIdx: number) => {
-    const ctx = ctxRef.current;
-    if (!ctx) return;
-    // stop previous
-    padRef.current.forEach(({ osc, gain }) => {
-      gain.gain.cancelScheduledValues(ctx.currentTime);
-      gain.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.05);
-      osc.stop(ctx.currentTime + 0.3);
-    });
-    padRef.current = [];
+  const chordFreqs = (chordIdx: number) => {
     const chord = chords[chordIdx];
     const tones = triadTones(chord.root, chord.quality);
-    const dur = (beatsPerChord * 60) / bpm;
-    // triad + root an octave up
     const freqs = tones.map((t) => pitchToFreq(t, 3));
     freqs.push(pitchToFreq(chord.root, 4));
-    freqs.forEach((f, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = "triangle";
-      osc.frequency.value = f;
-      osc.detune.value = i === 0 ? 0 : (i % 2 ? 3 : -3);
-      const peak = 0.11;
-      gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(peak, ctx.currentTime + 0.04);
-      gain.gain.setTargetAtTime(0.0001, ctx.currentTime + dur * 0.7, 0.25);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-      osc.stop(ctx.currentTime + dur + 0.4);
-      padRef.current.push({ osc, gain });
-    });
-  };
-
-  const click = (accent: boolean) => {
-    const ctx = ctxRef.current;
-    if (!ctx) return;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.frequency.value = accent ? 1500 : 1000;
-    gain.gain.setValueAtTime(accent ? 0.18 : 0.09, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.04);
+    return freqs;
   };
 
   useEffect(() => {
@@ -86,15 +49,16 @@ export default function LooperPage() {
       return;
     }
     const beatMs = 60000 / bpm;
+    const dur = (beatsPerChord * 60) / bpm;
     const onBeat = () => {
       const beat = beatRef.current;
       const withinChord = beat % beatsPerChord;
       if (withinChord === 0) {
         const chordIdx = Math.floor(beat / beatsPerChord) % chords.length;
         setStep(chordIdx);
-        playPad(chordIdx);
+        playChord(chordFreqs(chordIdx), dur);
       }
-      click(withinChord === 0);
+      playClick(withinChord === 0);
       beatRef.current = beat + 1;
     };
     onBeat();
@@ -105,18 +69,16 @@ export default function LooperPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [playing, bpm, beatsPerChord, chords]);
 
-  const toggle = () => {
-    if (!ctxRef.current) {
-      ctxRef.current = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+  const toggle = async () => {
+    if (!playing) {
+      await unlockAudio(); // iOS: resume + unlock within the tap
+      beatRef.current = 0;
+      setStep(0);
     }
-    ctxRef.current.resume();
-    beatRef.current = 0;
-    setStep(0);
     setPlaying((p) => !p);
   };
 
   useEffect(() => {
-    // stop audio when settings change mid-play
     if (playing) {
       beatRef.current = 0;
       setStep(0);
