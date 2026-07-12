@@ -167,6 +167,163 @@ export function dampStrings(): void {
   bus.gain.setValueAtTime(1, t + 0.35);
 }
 
+// ---------- Rhythm section (practice tracks) ----------
+// All *At functions take an ABSOLUTE AudioContext time so a scheduler can
+// place events precisely. Everything routes through trackBus so a track can
+// be silenced instantly on stop.
+
+let trackBus: GainNode | null = null;
+
+function ensureTrackBus(c: AudioContext): GainNode {
+  if (!trackBus) {
+    trackBus = c.createGain();
+    trackBus.gain.value = 1;
+    trackBus.connect(c.destination);
+  }
+  return trackBus;
+}
+
+export function trackNow(): number {
+  return ensureCtx().currentTime;
+}
+
+// Restore the bus (call when starting playback).
+export function openTrackBus(): void {
+  const c = ensureCtx();
+  const bus = ensureTrackBus(c);
+  bus.gain.cancelScheduledValues(c.currentTime);
+  bus.gain.setValueAtTime(1, c.currentTime);
+}
+
+// Fade the whole rhythm section out fast (call on stop).
+export function closeTrackBus(): void {
+  const c = ensureCtx();
+  const bus = ensureTrackBus(c);
+  bus.gain.cancelScheduledValues(c.currentTime);
+  bus.gain.setValueAtTime(bus.gain.value, c.currentTime);
+  bus.gain.linearRampToValueAtTime(0.0001, c.currentTime + 0.15);
+}
+
+let noiseBuf: AudioBuffer | null = null;
+function noise(c: AudioContext): AudioBuffer {
+  if (!noiseBuf) {
+    noiseBuf = c.createBuffer(1, Math.floor(c.sampleRate * 0.4), c.sampleRate);
+    const d = noiseBuf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+  }
+  return noiseBuf;
+}
+
+export function kickAt(t: number, gain = 0.9): void {
+  const c = ensureCtx();
+  const osc = c.createOscillator();
+  const g = c.createGain();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(120, t);
+  osc.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+  g.gain.setValueAtTime(gain, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.28);
+  osc.connect(g);
+  g.connect(ensureTrackBus(c));
+  osc.start(t);
+  osc.stop(t + 0.3);
+}
+
+export function snareAt(t: number, gain = 0.4): void {
+  const c = ensureCtx();
+  const bus = ensureTrackBus(c);
+  // noise body
+  const src = c.createBufferSource();
+  src.buffer = noise(c);
+  const bp = c.createBiquadFilter();
+  bp.type = "bandpass";
+  bp.frequency.value = 1800;
+  bp.Q.value = 0.8;
+  const g = c.createGain();
+  g.gain.setValueAtTime(gain, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.18);
+  src.connect(bp); bp.connect(g); g.connect(bus);
+  src.start(t); src.stop(t + 0.2);
+  // tonal thump
+  const osc = c.createOscillator();
+  const og = c.createGain();
+  osc.type = "triangle";
+  osc.frequency.value = 185;
+  og.gain.setValueAtTime(gain * 0.5, t);
+  og.gain.exponentialRampToValueAtTime(0.001, t + 0.1);
+  osc.connect(og); og.connect(bus);
+  osc.start(t); osc.stop(t + 0.12);
+}
+
+export function hatAt(t: number, gain = 0.12): void {
+  const c = ensureCtx();
+  const src = c.createBufferSource();
+  src.buffer = noise(c);
+  const hp = c.createBiquadFilter();
+  hp.type = "highpass";
+  hp.frequency.value = 7500;
+  const g = c.createGain();
+  g.gain.setValueAtTime(gain, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.045);
+  src.connect(hp); hp.connect(g); g.connect(ensureTrackBus(c));
+  src.start(t); src.stop(t + 0.06);
+}
+
+export function bassAt(t: number, freq: number, dur: number, gain = 0.4): void {
+  const c = ensureCtx();
+  const osc = c.createOscillator();
+  const lp = c.createBiquadFilter();
+  const g = c.createGain();
+  osc.type = "triangle";
+  osc.frequency.value = freq;
+  lp.type = "lowpass";
+  lp.frequency.value = 420;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(gain, t + 0.02);
+  g.gain.setValueAtTime(gain, t + Math.max(0.05, dur - 0.12));
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  osc.connect(lp); lp.connect(g); g.connect(ensureTrackBus(c));
+  osc.start(t);
+  osc.stop(t + dur + 0.05);
+}
+
+// Ambient worship pad: detuned saws through a soft lowpass, slow swell.
+export function padAt(t: number, freqs: number[], dur: number, gain = 0.045): void {
+  const c = ensureCtx();
+  const bus = ensureTrackBus(c);
+  const lp = c.createBiquadFilter();
+  lp.type = "lowpass";
+  lp.frequency.value = 950;
+  lp.Q.value = 0.3;
+  const master = c.createGain();
+  master.gain.setValueAtTime(0.0001, t);
+  master.gain.linearRampToValueAtTime(1, t + 0.5);
+  master.gain.setValueAtTime(1, t + Math.max(0.5, dur - 0.3));
+  master.gain.linearRampToValueAtTime(0.0001, t + dur + 0.6);
+  lp.connect(master);
+  master.connect(bus);
+  freqs.forEach((f) => {
+    [-6, 5].forEach((cents) => {
+      const osc = c.createOscillator();
+      const g = c.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.value = f;
+      osc.detune.value = cents;
+      g.gain.value = gain;
+      osc.connect(g); g.connect(lp);
+      osc.start(t);
+      osc.stop(t + dur + 0.7);
+    });
+  });
+}
+
+// Strum at an absolute time (wraps pluck; strings route through the strings bus).
+export function strumAt(t: number, freqs: number[], gain = 0.4): void {
+  const c = ensureCtx();
+  const rel = Math.max(0, t - c.currentTime);
+  strum(freqs, { when: rel, stagger: 0.035, gain });
+}
+
 // ---------- Utility tones ----------
 
 export function playClick(accent = false): void {
