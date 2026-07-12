@@ -165,6 +165,14 @@ export default function Navigation() {
 
         <div className="flex-1" />
 
+        {/* scripture */}
+        <div className="mx-6 mb-3 border-t pt-3" style={{ borderColor: "rgba(212,169,106,.12)" }}>
+          <p className="font-display text-[13px] italic leading-snug text-[#BCA684]">
+            &ldquo;Make a joyful noise unto the LORD, all ye lands.&rdquo;
+          </p>
+          <p className="kicker mt-1 text-[10px] text-[#8C7658]">Psalm 100:1</p>
+        </div>
+
         {/* streak card */}
         <div className="mx-3.5 mb-3 flex items-center gap-3 rounded-[14px] px-4 py-3.5" style={{ background: "rgba(0,0,0,.22)" }}>
           <FlameIcon />

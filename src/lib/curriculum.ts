@@ -9,6 +9,7 @@ export interface Lesson {
   minutes: number;
   kicker?: string; // assigned automatically from position below
   objective: string;
+  scripture?: { text: string; ref: string }; // King James Version, only where it truly fits
   chords?: string[]; // keys into CHORDS (see ./chords)
   progression?: { key: string; degrees: number[] };
   learn: { title: string; body: string }[];
@@ -39,6 +40,7 @@ export const MODULES: Module[] = [
         subtitle: "Classical posture and a relaxed hold",
         minutes: 8,
         objective: "Sit and hold the guitar so your hands are free to move without tension.",
+        scripture: { text: "And let the beauty of the LORD our God be upon us: and establish thou the work of our hands upon us; yea, the work of our hands establish thou it.", ref: "Psalm 90:17" },
         learn: [
           { title: "Sit tall", body: "Sit forward on a firm chair, both feet flat. Rest the waist of the guitar on your right leg (or left leg with a footstool for full classical posture)." },
           { title: "Let the neck rise", body: "Angle the headstock up to about eye-level height. This keeps your fretting wrist straight instead of collapsed." },
@@ -115,6 +117,7 @@ export const MODULES: Module[] = [
         subtitle: "Playing on the top strings",
         minutes: 12,
         objective: "Play a simple, recognizable melody one note at a time.",
+        scripture: { text: "O sing unto the LORD a new song: sing unto the LORD, all the earth.", ref: "Psalm 96:1" },
         learn: [
           { title: "One note at a time", body: "Melody is single notes played in sequence. Alternate i and m so no finger plays twice in a row." },
           { title: "Count as you go", body: "Say '1, 2, 3, 4' steadily and play a note on each count. Even timing matters more than speed." },
@@ -217,6 +220,7 @@ export const MODULES: Module[] = [
         subtitle: "A gentle pattern for ballads",
         minutes: 12,
         objective: "Play the most common flowing worship strum pattern.",
+        scripture: { text: "Sing unto him a new song; play skilfully with a loud noise.", ref: "Psalm 33:3" },
         chords: ["C"],
         learn: [
           { title: "The pattern", body: "The classic worship strum is: Down, Down-Up, Up-Down-Up — counted 1, 2-and, and-3-and (with a miss on beat 3's down). It flows rather than marches." },
@@ -236,6 +240,7 @@ export const MODULES: Module[] = [
         subtitle: "Playing hymns in 3/4",
         minutes: 10,
         objective: "Play confidently in 3/4 — the time signature of many beloved hymns.",
+        scripture: { text: "And when they had sung an hymn, they went out into the mount of Olives.", ref: "Matthew 26:30" },
         chords: ["G", "C", "D"],
         learn: [
           { title: "Three beats to a bar", body: "In 3/4 you count '1, 2, 3' — one strong beat, two light ones. It sways like a waltz instead of marching like 4/4." },
@@ -256,6 +261,7 @@ export const MODULES: Module[] = [
         subtitle: "p-i-m-a arpeggio patterns",
         minutes: 12,
         objective: "Play a steady fingerpicked arpeggio pattern through a chord.",
+        scripture: { text: "Sing unto the LORD with the harp; with the harp, and the voice of a psalm.", ref: "Psalm 98:5" },
         chords: ["Em"],
         learn: [
           { title: "Plant the hand", body: "Hold E minor. Place p on the low E string, i on the G, m on the B, a on the high E. This 'planted' start keeps the hand quiet and accurate." },
@@ -276,6 +282,7 @@ export const MODULES: Module[] = [
         subtitle: "Staying steady when it's slow",
         minutes: 12,
         objective: "Hold a slow modern worship tempo (64–72 BPM) steady and full without rushing.",
+        scripture: { text: "And he hath put a new song in my mouth, even praise unto our God: many shall see it, and fear, and shall trust in the LORD.", ref: "Psalm 40:3" },
         chords: ["G", "Cadd9", "Em7", "Dsus4"],
         learn: [
           { title: "Slow is the hard part", body: "Modern worship ballads sit around 66–72 BPM — far slower than most hymns. The space between beats is where beginners rush. The fix is subdividing: count '1-e-and-a, 2-e-and-a' so every beat is full of silent structure." },
@@ -404,6 +411,7 @@ export const MODULES: Module[] = [
         subtitle: "The reflective colors",
         minutes: 10,
         objective: "Play the two open minor chords that give worship its tender moments.",
+        scripture: { text: "The LORD is nigh unto them that are of a broken heart; and saveth such as be of a contrite spirit.", ref: "Psalm 34:18" },
         chords: ["Am", "Dm"],
         learn: [
           { title: "A minor", body: "Middle finger on the D (4th) 2nd fret, ring on the G (3rd) 2nd fret, index on the B (2nd) 1st fret. Skip the low E. It's the E-major hand shape moved over one string set." },
@@ -487,6 +495,7 @@ export const MODULES: Module[] = [
         subtitle: "F major and B minor",
         minutes: 14,
         objective: "Play your first barre chords — the gateway to every key.",
+        scripture: { text: "And let us not be weary in well doing: for in due season we shall reap, if we faint not.", ref: "Galatians 6:9" },
         chords: ["F", "Bm"],
         learn: [
           { title: "The barre itself", body: "Lay your index finger flat across all six strings at the 1st fret, rolled slightly onto its bony edge. Squeeze gently with the thumb behind the neck — pressure comes from the arm pulling back, not the thumb crushing." },
@@ -528,6 +537,7 @@ export const MODULES: Module[] = [
         subtitle: "Putting it all together",
         minutes: 12,
         objective: "Play a full, simple worship song start to finish.",
+        scripture: { text: "Serve the LORD with gladness: come before his presence with singing.", ref: "Psalm 100:2" },
         chords: ["G", "D", "Em", "C"],
         progression: { key: "G", degrees: [1, 5, 6, 4] },
         learn: [
@@ -556,6 +566,7 @@ export const MODULES: Module[] = [
         subtitle: "The roadmap of melody",
         minutes: 14,
         objective: "Play the G major scale cleanly in open position and understand how it's built.",
+        scripture: { text: "For God is King of all the earth: sing ye praises with understanding.", ref: "Psalm 47:7" },
         learn: [
           { title: "The formula", body: "Every major scale follows the same step pattern: whole-whole-half-whole-whole-whole-half. On guitar a whole step is two frets, a half step is one." },
           { title: "One octave in G", body: "Start on the low E string, 3rd fret (G). Then: A (5th string open), B (5th, 2nd fret), C (5th, 3rd), D (4th open), E (4th, 2nd), F# (4th, 4th), G (3rd open). Eight notes, one octave." },
@@ -599,6 +610,7 @@ export const MODULES: Module[] = [
         subtitle: "Be Thou My Vision, one note at a time",
         minutes: 15,
         objective: "Play a recognizable hymn melody as a singing lead line.",
+        scripture: { text: "Speaking to yourselves in psalms and hymns and spiritual songs, singing and making melody in your heart to the Lord.", ref: "Ephesians 5:19" },
         learn: [
           { title: "Melody is scale notes", body: "A hymn tune is the major scale rearranged into a beautiful order. You already have every note under your fingers from the last lessons." },
           { title: "Phrase by phrase", body: "Learn the first line, then the second, then join them. A hymn is four singable phrases — treat each one like a sentence." },
@@ -709,6 +721,7 @@ export const MODULES: Module[] = [
         subtitle: "Say something, then breathe",
         minutes: 16,
         objective: "Improvise melodic, tasteful lead lines with intentional phrasing.",
+        scripture: { text: "And it came to pass, when the evil spirit from God was upon Saul, that David took an harp, and played with his hand: so Saul was refreshed, and was well, and the evil spirit departed from him.", ref: "1 Samuel 16:23" },
         progression: { key: "G", degrees: [1, 5, 6, 4] },
         learn: [
           { title: "Play like you speak", body: "Good improvising is like conversation: short phrases, with space to breathe between them. Don't fill every beat." },
@@ -733,7 +746,7 @@ export const MODULES: Module[] = [
     id: "m5",
     num: 5,
     title: "Leading Worship",
-    subtitle: "Dynamics, flow & leading a set",
+    subtitle: "The heart & craft of leading worship",
     lessons: [
       {
         id: "m5l1",
@@ -741,6 +754,7 @@ export const MODULES: Module[] = [
         subtitle: "When to build and when to rest",
         minutes: 14,
         objective: "Shape a song's energy with your playing, not just your volume.",
+        scripture: { text: "A time to keep silence, and a time to speak.", ref: "Ecclesiastes 3:7" },
         progression: { key: "G", degrees: [1, 4, 6, 5] },
         learn: [
           { title: "The arc of a song", body: "Most worship songs breathe: gentle verse, building pre-chorus, full chorus, stripped-back bridge. Your dynamics draw that arc." },
@@ -764,6 +778,7 @@ export const MODULES: Module[] = [
         subtitle: "How worship teams talk",
         minutes: 14,
         objective: "Read and call chord progressions by number in any key.",
+        scripture: { text: "I will sing with the spirit, and I will sing with the understanding also.", ref: "1 Corinthians 14:15" },
         learn: [
           { title: "Number the scale", body: "Give each note of the major scale a number, 1 through 7. In G: G=1, A=2, B=3, C=4, D=5, E=6, F#=7. Chords take the number of their root note." },
           { title: "Major and minor by position", body: "In every major key the pattern is identical: chords 1, 4 and 5 are major; 2, 3 and 6 are minor; 7 is diminished. So '6' in G automatically means E minor." },
@@ -786,6 +801,7 @@ export const MODULES: Module[] = [
         subtitle: "Keys, ranges & transposing",
         minutes: 13,
         objective: "Choose and change keys so the congregation can actually sing the song.",
+        scripture: { text: "O magnify the LORD with me, and let us exalt his name together.", ref: "Psalm 34:3" },
         learn: [
           { title: "Find the ceiling", body: "Every song has a highest note. Congregations are comfortable up to roughly a C or D above middle C — higher than that and the room stops singing and starts listening." },
           { title: "Move the key, not the melody", body: "If the highest note is too high, transpose down until it sits in range. The melody's shape stays identical; only its altitude changes." },
@@ -807,6 +823,7 @@ export const MODULES: Module[] = [
         subtitle: "Cueing the team and the room",
         minutes: 15,
         objective: "Guide a song's structure so the worship team and congregation can follow you.",
+        scripture: { text: "It came even to pass, as the trumpeters and singers were as one, to make one sound to be heard in praising and thanking the LORD…", ref: "2 Chronicles 5:13" },
         learn: [
           { title: "Set the tempo", body: "Count the worship team in clearly, or start a steady intro so everyone locks to your pulse. You are the clock." },
           { title: "Signal changes", body: "Use simple, visible cues — a nod, a lifted headstock, calling the section name — so the team knows when the chorus or bridge is coming." },
@@ -821,7 +838,7 @@ export const MODULES: Module[] = [
           "Play a full song with your eyes closed or fixed on a point across the room — no looking at your hands.",
         ],
         playAlong: "Loop a progression and practice starting, adding a section, and ending cleanly on a single held strum.",
-        tip: "Confidence is a gift to your team. Even a simple part played decisively is easier to follow than a fancy one played timidly.",
+        tip: "Confidence is a gift to your team. Even a simple part played decisively is easier to follow than a fancy one played timidly. And confidence grows in prayer as much as in practice — lead from a prepared heart.",
         theory: "A count-off works because it establishes tempo before the downbeat: one full bar at performance speed gives every musician two pieces of information at once — where beat 1 lands and how fast the beats come. Internalizing tempos (72 vs 80 BPM) is a trainable skill; check yourself against the Metronome daily.",
       },
       {
@@ -830,6 +847,7 @@ export const MODULES: Module[] = [
         subtitle: "Transitions & medleys",
         minutes: 14,
         objective: "Connect songs into one continuous, prayerful flow with no dead air.",
+        scripture: { text: "Let the word of Christ dwell in you richly in all wisdom; teaching and admonishing one another in psalms and hymns and spiritual songs, singing with grace in your hearts to the Lord.", ref: "Colossians 3:16" },
         learn: [
           { title: "Group by key", body: "Songs in the same key (or close neighbours like G and C) flow into each other naturally. Plan your set so the keys are friendly." },
           { title: "The pivot chord", body: "To move from a song in G to a song in C, land on a G7 — G is the 5 of C, so that one chord swings the door open into the new key." },
@@ -851,6 +869,7 @@ export const MODULES: Module[] = [
         subtitle: "Playing in open, unscripted moments",
         minutes: 15,
         objective: "Hold an open, prayerful musical space with just a chord or two.",
+        scripture: { text: "Be still, and know that I am God.", ref: "Psalm 46:10" },
         progression: { key: "D", degrees: [1, 4] },
         learn: [
           { title: "Pick a home", body: "Spontaneous moments often live on one or two chords (a 1-4 vamp). Choose a key and settle in." },
@@ -874,6 +893,7 @@ export const MODULES: Module[] = [
         subtitle: "Bass, harmony & melody together",
         minutes: 18,
         objective: "Arrange and play a hymn as a complete solo classical guitar piece.",
+        scripture: { text: "I will also praise thee with the psaltery, even thy truth, O my God: unto thee will I sing with the harp, O thou Holy One of Israel.", ref: "Psalm 71:22" },
         learn: [
           { title: "One guitar, three voices", body: "This is the classical guitar's superpower: the thumb plays the bass, the fingers carry the melody on the top strings, and the harmony rings in between." },
           { title: "The thumb keeps the floor", body: "Play each chord's root on beat 1 with p — G under the G chord, C under the C chord. The bass note anchors everything above it." },
@@ -897,6 +917,7 @@ export const MODULES: Module[] = [
         subtitle: "Planning and carrying a worship set",
         minutes: 20,
         objective: "Plan and play a short set of songs that flows as one journey.",
+        scripture: { text: "So he fed them according to the integrity of his heart; and guided them by the skilfulness of his hands.", ref: "Psalm 78:72" },
         learn: [
           { title: "Order for flow", body: "Group songs by key and tempo so transitions are smooth. A common arc: an upbeat opener, into mid-tempo, into an intimate closer." },
           { title: "Connect the songs", body: "Use a shared key, a pivot chord, or a capo change to glide from one song into the next without dead air — everything from the transitions lesson, now with a plan." },
@@ -911,7 +932,7 @@ export const MODULES: Module[] = [
           "Play it again and deliberately change one thing in the moment (repeat a chorus, extend a vamp) to practice flexibility.",
         ],
         playAlong: "Use the Song Library charts to play your three-song set back to back, keeping the pulse steady between songs.",
-        tip: "You've come the whole journey — from your first note to leading a set. Keep serving, keep growing, and play skillfully for the Lord.",
+        tip: "You've come the whole journey — from your first note to leading a set. Keep serving, keep growing, and play skilfully for the Lord.",
         theory: "Set keys work like a journey on the circle of fifths: neighbouring keys (G-C-D, or D-A-G) share most of their notes, so moving between them feels seamless, while a distant key change reads as a deliberate 'lift'. Tempo works the same way — congregations follow gradual changes and feel sudden ones.",
       },
     ],
