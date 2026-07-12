@@ -12,6 +12,7 @@ export interface ChurchSong {
   id: string;
   title: string;
   author: string;
+  ccli?: string; // CCLI song number
   addedBy: string;
   addedAt: string;
 }
@@ -71,8 +72,12 @@ export async function POST(req: Request) {
     const existing = doc.songs.find(
       (s) => s.title.toLowerCase() === title.toLowerCase() && s.author.toLowerCase() === author.toLowerCase()
     );
-    if (!existing && doc.songs.length < 1000) {
-      doc.songs.push({ id: newId("cs"), title, author, addedBy: await displayName(), addedAt: new Date().toISOString() });
+    const ccli = str(body.ccli, 12).replace(/\D/g, "");
+    if (existing && ccli && !existing.ccli) {
+      existing.ccli = ccli;
+      await getRedis().set(KEY, doc);
+    } else if (!existing && doc.songs.length < 1000) {
+      doc.songs.push({ id: newId("cs"), title, author, ...(ccli ? { ccli } : {}), addedBy: await displayName(), addedAt: new Date().toISOString() });
       await getRedis().set(KEY, doc);
     }
   } else if (action === "deleteSong") {

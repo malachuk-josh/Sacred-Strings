@@ -5,6 +5,7 @@ import Link from "next/link";
 import { SignInButton, useUser } from "@clerk/nextjs";
 import { CATALOG } from "@/lib/worship-catalog";
 import { TEAM_ROLES } from "@/lib/team";
+import { songselectSearchUrl, songselectSongUrl } from "@/lib/songselect";
 
 interface SetlistSong {
   title: string;
@@ -12,6 +13,7 @@ interface SetlistSong {
   key?: string;
   chart?: string;
   catalogId?: string;
+  ccli?: string;
 }
 interface TeamSlot {
   role: string;
@@ -35,6 +37,7 @@ interface ChurchSong {
   id: string;
   title: string;
   author: string;
+  ccli?: string;
   addedBy: string;
 }
 interface Person {
@@ -171,6 +174,40 @@ export default function SetlistsPage() {
     if (editingId === id) setEditingId(null);
   };
 
+  const duplicateSetlist = (src: Setlist) => {
+    const copy: Setlist = {
+      ...src,
+      id: newId(),
+      name: `${src.name} (copy)`,
+      favorite: false,
+      date: undefined,
+      updatedAt: new Date().toISOString(),
+      songs: src.songs.map((x) => ({ ...x })),
+      team: src.team?.map((t) => ({ ...t })),
+    };
+    persist({ ...doc, setlists: [copy, ...doc.setlists] });
+  };
+
+  const [copied, setCopied] = useState(false);
+  const copyForTeam = (s: Setlist) => {
+    const lines: string[] = [];
+    lines.push(`${s.name}${s.date ? ` — ${fmtDate(s.date)}` : ""}`);
+    if (s.songs.length) {
+      lines.push("", "Songs:");
+      s.songs.forEach((x, i) => lines.push(`${i + 1}. ${x.title}${x.key ? ` (${x.key})` : ""}${x.ccli ? ` · CCLI ${x.ccli}` : ""}`));
+    }
+    const team = (s.team ?? []).filter((t) => t.person);
+    if (team.length) {
+      lines.push("", "Team:");
+      team.forEach((t) => lines.push(`${t.person} — ${t.role}`));
+    }
+    if (s.notes) lines.push("", `Notes: ${s.notes}`);
+    navigator.clipboard.writeText(lines.join("\n")).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    });
+  };
+
   const isFav = (song: SetlistSong) => doc.songFavs.some((f) => songEq(f, song));
   const toggleFavSong = (song: SetlistSong) => {
     const stripped: SetlistSong = { title: song.title, author: song.author, ...(song.chart ? { chart: song.chart } : {}), ...(song.catalogId ? { catalogId: song.catalogId } : {}) };
@@ -183,7 +220,7 @@ export default function SetlistsPage() {
     const match = (t: string, a: string) => !q || t.toLowerCase().includes(q) || a.toLowerCase().includes(q);
     const churchRows = church.songs
       .filter((s) => match(s.title, s.author))
-      .map((s): SetlistSong & { churchId?: string } => ({ title: s.title, author: s.author, catalogId: `church-${s.id}`, churchId: s.id }));
+      .map((s): SetlistSong & { churchId?: string } => ({ title: s.title, author: s.author, catalogId: `church-${s.id}`, churchId: s.id, ...(s.ccli ? { ccli: s.ccli } : {}) }));
     if (filter === "My Songs") {
       return doc.songFavs.filter((s) => match(s.title, s.author));
     }
@@ -264,7 +301,12 @@ export default function SetlistsPage() {
         <div className="mt-4">
           <div className="flex items-center justify-between">
             <button onClick={() => setEditingId(null)} className="text-sm text-bronze">← All setlists</button>
-            <button onClick={() => deleteSetlist(editing.id)} className="text-xs text-faint">Delete</button>
+            <div className="flex items-center gap-4">
+              <button onClick={() => copyForTeam(editing)} className="text-xs font-semibold text-bronze">
+                {copied ? "Copied ✓" : "Copy for team"}
+              </button>
+              <button onClick={() => deleteSetlist(editing.id)} className="text-xs text-faint">Delete</button>
+            </div>
           </div>
 
           <div className="mt-3 flex items-center gap-2">
@@ -397,6 +439,26 @@ export default function SetlistsPage() {
                       {song.author}
                       {song.chart && (<> · <Link href={`/songs/${song.chart}`} className="font-semibold text-bronze">chart →</Link></>)}
                     </div>
+                    <div className="mt-1 flex items-center gap-2">
+                      <a
+                        href={song.ccli ? songselectSongUrl(song.ccli) : songselectSearchUrl(song.title, song.author)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[11px] font-semibold text-bronze"
+                      >
+                        SongSelect ↗
+                      </a>
+                      <input
+                        value={song.ccli ?? ""}
+                        onChange={(e) => {
+                          const ccli = e.target.value.replace(/\D/g, "").slice(0, 10);
+                          updateSetlist(editing.id, (s) => ({ ...s, songs: s.songs.map((x, xi) => (xi === i ? { ...x, ccli: ccli || undefined } : x)) }));
+                        }}
+                        placeholder="CCLI #"
+                        inputMode="numeric"
+                        className="w-[84px] rounded-[6px] border border-border-warm bg-parchment px-1.5 py-0.5 text-[11px] text-espresso outline-none placeholder:text-faint-2"
+                      />
+                    </div>
                   </div>
                   <select
                     value={song.key ?? ""}
@@ -440,7 +502,7 @@ export default function SetlistsPage() {
                   <div key={`${song.catalogId ?? song.title}-${song.author}`} className="flex items-center gap-2 rounded-[12px] border border-border-warm bg-white px-3 py-2.5">
                     <div className="min-w-0 flex-1">
                       <div className="truncate text-sm font-semibold text-espresso">{song.title}</div>
-                      <div className="truncate text-xs text-muted">{song.author}{song.chart ? " · has chart" : ""}{churchId ? " · church library" : ""}</div>
+                      <div className="truncate text-xs text-muted">{song.author}{song.chart ? " · has chart" : ""}{song.ccli ? ` · CCLI ${song.ccli}` : ""}{churchId ? " · church library" : ""}</div>
                     </div>
                     {churchId && isAdmin && (
                       <button onClick={() => churchPost({ action: "deleteSong", id: churchId })} className="px-1 text-base text-faint" aria-label="Remove from church library">×</button>
@@ -449,7 +511,7 @@ export default function SetlistsPage() {
                       {isFav(song) ? "♥" : "♡"}
                     </button>
                     <button
-                      onClick={() => updateSetlist(editing.id, (s) => ({ ...s, songs: [...s.songs, { title: song.title, author: song.author, ...(song.chart ? { chart: song.chart } : {}), ...(song.catalogId ? { catalogId: song.catalogId } : {}) }] }))}
+                      onClick={() => updateSetlist(editing.id, (s) => ({ ...s, songs: [...s.songs, { title: song.title, author: song.author, ...(song.chart ? { chart: song.chart } : {}), ...(song.catalogId ? { catalogId: song.catalogId } : {}), ...(song.ccli ? { ccli: song.ccli } : {}) }] }))}
                       className="flex h-8 w-8 flex-none items-center justify-center rounded-full text-lg font-bold text-cream"
                       style={{ background: "#5C3A1E" }}
                       aria-label="Add to setlist"
@@ -517,6 +579,7 @@ export default function SetlistsPage() {
                     {s.songs.length > 0 && <> · {s.songs.slice(0, 3).map((x) => x.title).join(" · ")}{s.songs.length > 3 ? " …" : ""}</>}
                   </div>
                 </button>
+                <button onClick={() => duplicateSetlist(s)} className="px-1 text-sm text-bronze" aria-label="Duplicate" title="Duplicate">⧉</button>
                 <button onClick={() => deleteSetlist(s.id)} className="px-1 text-lg text-faint" aria-label="Delete">×</button>
               </div>
             ))}
@@ -585,6 +648,8 @@ export default function SetlistsPage() {
                       <div className="truncate text-xs text-muted">
                         {song.author}
                         {song.chart && (<> · <Link href={`/songs/${song.chart}`} className="font-semibold text-bronze">chart →</Link></>)}
+                        {" · "}
+                        <a href={song.ccli ? songselectSongUrl(song.ccli) : songselectSearchUrl(song.title, song.author)} target="_blank" rel="noopener noreferrer" className="font-semibold text-bronze">SongSelect ↗</a>
                       </div>
                     </div>
                     <button onClick={() => toggleFavSong(song)} className="px-1 text-lg text-bronze" aria-label="Remove from saved">♥</button>
