@@ -125,7 +125,9 @@ export default function TodayPage() {
       {/* Practice tools (mobile) */}
       <div className="lg:hidden">
         <div className="kicker mb-3 text-[13px] text-muted">Practice Tools</div>
-        <div className="flex gap-3">
+        <div className="grid grid-cols-3 gap-3">
+          <ToolTile href="/looper" label="Looper" icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M17 3l3 3-3 3M4 11v-1a4 4 0 014-4h12M7 21l-3-3 3-3M20 13v1a4 4 0 01-4 4H4" stroke="#C89B5C" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>} />
+          <ToolTile href="/capo" label="Capo & Keys" icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 4v16M8 8l4-4 4 4M8 16l4 4 4-4" stroke="#C89B5C" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" /></svg>} />
           <ToolTile href="/metronome" label="Metronome" icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#C89B5C" strokeWidth="1.6" /><path d="M12 12V6M12 12l4 3" stroke="#5C3A1E" strokeWidth="1.6" strokeLinecap="round" /></svg>} />
           <ToolTile href="/tuner" label="Tuner" icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M12 3v18M8 6v12M16 6v12M4 9v6M20 9v6" stroke="#C89B5C" strokeWidth="1.6" strokeLinecap="round" /></svg>} />
           <ToolTile href="/chords" label="Chords" icon={<svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="#C89B5C" strokeWidth="1.6" /><path d="M8 8h8M8 12h8M8 16h5" stroke="#5C3A1E" strokeWidth="1.6" strokeLinecap="round" /></svg>} />
