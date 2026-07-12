@@ -1,41 +1,80 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf9f6;
-  --foreground: #1a1a2e;
-  --gold: #e2b857;
-  --gold-dark: #c49a3c;
-  --gold-light: #f5dfa0;
-  --navy: #1a1a2e;
-  --navy-light: #2d2d4a;
-  --cream: #faf9f6;
-  --warm-gray: #6b6b7b;
+  /* Wood & parchment palette drawn from the app icon */
+  --walnut-darkest: #1a0e08;
+  --walnut-deep: #241209;
+  --espresso: #2c1810;
+  --bark: #3a2415;
+  --cocoa: #4a2e18;
+  --chestnut: #5c3a1e;
+  --walnut-mid: #6b4423;
+  --cinnamon: #7a4e2e;
+  --caramel: #8b5e3c;
+  --bronze: #b8834a;
+  --amber: #c89b5c;
+  --gold: #d4a96a;
+  --wheat: #e8c78e;
+  --cream: #f5e6d0;
+  --parchment: #faf4ea;
+  --parchment-2: #f3e7d4;
+  --sand: #ede3d2;
+  --border-warm: #eadfc9;
+  --border-warm-2: #e5d8c0;
+  --muted: #8b7355;
+  --faint: #a08966;
+  --faint-2: #b8a585;
+
+  --background: var(--sand);
+  --foreground: var(--espresso);
 }
 
 @theme inline {
+  --color-walnut-darkest: var(--walnut-darkest);
+  --color-walnut-deep: var(--walnut-deep);
+  --color-espresso: var(--espresso);
+  --color-bark: var(--bark);
+  --color-cocoa: var(--cocoa);
+  --color-chestnut: var(--chestnut);
+  --color-walnut-mid: var(--walnut-mid);
+  --color-cinnamon: var(--cinnamon);
+  --color-caramel: var(--caramel);
+  --color-bronze: var(--bronze);
+  --color-amber: var(--amber);
+  --color-gold: var(--gold);
+  --color-wheat: var(--wheat);
+  --color-cream: var(--cream);
+  --color-parchment: var(--parchment);
+  --color-parchment-2: var(--parchment-2);
+  --color-sand: var(--sand);
+  --color-border-warm: var(--border-warm);
+  --color-border-warm-2: var(--border-warm-2);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-faint-2: var(--faint-2);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-gold: var(--gold);
-  --color-gold-dark: var(--gold-dark);
-  --color-gold-light: var(--gold-light);
-  --color-navy: var(--navy);
-  --color-navy-light: var(--navy-light);
-  --color-cream: var(--cream);
-  --color-warm-gray: var(--warm-gray);
-  --font-sans: var(--font-inter);
-  --font-serif: var(--font-playfair);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f0f1a;
-    --foreground: #f0ede6;
-    --cream: #1a1a2e;
-  }
+  --font-serif: var(--font-cormorant);
+  --font-sans: var(--font-dmsans);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans, system-ui, sans-serif);
+  font-family: var(--font-dmsans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Cormorant Garamond display type */
+.font-display {
+  font-family: var(--font-cormorant), Georgia, serif;
+}
+
+/* Uppercase kicker */
+.kicker {
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  font-weight: 600;
 }
