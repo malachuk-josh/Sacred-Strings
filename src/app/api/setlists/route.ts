@@ -12,11 +12,19 @@ export interface SetlistSong {
   catalogId?: string;
 }
 
+export interface TeamSlot {
+  role: string;
+  person: string;
+}
+
 export interface Setlist {
   id: string;
   name: string;
   favorite: boolean;
   updatedAt: string;
+  date?: string; // YYYY-MM-DD service date
+  notes?: string;
+  team?: TeamSlot[];
   songs: SetlistSong[];
 }
 
@@ -59,13 +67,29 @@ function sanitizeDoc(raw: unknown): PlannerDoc {
       const id = str(s.id, 40);
       const name = str(s.name, 80);
       if (!id || !name) return null;
-      return {
+      const out: Setlist = {
         id,
         name,
         favorite: !!s.favorite,
         updatedAt: str(s.updatedAt, 40) || new Date().toISOString(),
         songs: (Array.isArray(s.songs) ? s.songs : []).slice(0, 60).map(sanitizeSong).filter((x): x is SetlistSong => !!x),
       };
+      const date = str(s.date, 10);
+      if (/^\d{4}-\d{2}-\d{2}$/.test(date)) out.date = date;
+      const notes = str(s.notes, 500);
+      if (notes) out.notes = notes;
+      const team = (Array.isArray(s.team) ? s.team : [])
+        .slice(0, 20)
+        .map((raw: unknown): TeamSlot | null => {
+          if (!raw || typeof raw !== "object") return null;
+          const t = raw as Record<string, unknown>;
+          const role = str(t.role, 40);
+          const person = str(t.person, 80);
+          return role || person ? { role, person } : null;
+        })
+        .filter((x: TeamSlot | null): x is TeamSlot => !!x);
+      if (team.length) out.team = team;
+      return out;
     })
     .filter((x): x is Setlist => !!x);
   const songFavs = (Array.isArray(d.songFavs) ? d.songFavs : [])
