@@ -10,6 +10,7 @@ export interface SetlistSong {
   key?: string;
   chart?: string; // in-app chart id when available
   catalogId?: string;
+  ccli?: string; // CCLI song number (for reporting + SongSelect links)
 }
 
 export interface TeamSlot {
@@ -50,9 +51,11 @@ function sanitizeSong(raw: unknown): SetlistSong | null {
   const key = str(s.key, 6);
   const chart = str(s.chart, 60);
   const catalogId = str(s.catalogId, 80);
+  const ccli = str(s.ccli, 12).replace(/\D/g, "");
   if (key) song.key = key;
   if (chart) song.chart = chart;
   if (catalogId) song.catalogId = catalogId;
+  if (ccli) song.ccli = ccli;
   return song;
 }
 
