@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { songById, type SongSection } from "@/lib/songs";
-import { CHORDS } from "@/lib/curriculum";
+import { CHORDS } from "@/lib/chords";
 import { chordVoicing, midiToFreq } from "@/lib/music";
 import { armAudio, unlockAudio, strum } from "@/lib/audio";
 import ChordDiagram from "@/components/ChordDiagram";
@@ -33,7 +33,8 @@ export default function SongDetailPage() {
     await unlockAudio();
     timeouts.current.forEach(clearTimeout);
     timeouts.current = [];
-    const secPerChord = Math.max(0.7, (60 / song.tempo) * 2);
+    // One chart cell = one bar; bar length comes from the song's time signature.
+    const secPerChord = Math.max(0.9, (song.timeSignature * 60) / song.tempo);
     section.chords.forEach((name, i) => {
       const t = setTimeout(() => {
         const shape = CHORDS[name];

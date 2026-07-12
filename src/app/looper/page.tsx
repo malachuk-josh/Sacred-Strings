@@ -8,10 +8,9 @@ import {
   majorKeyChords,
   pitchOf,
   preferFlat,
-  triadTones,
-  pitchToFreq,
+  guitarTriadFreqs,
 } from "@/lib/music";
-import { armAudio, unlockAudio, playChord, playClick } from "@/lib/audio";
+import { armAudio, unlockAudio, strum, playClick, dampStrings } from "@/lib/audio";
 
 export default function LooperPage() {
   const [keyName, setKeyName] = useState("G");
@@ -35,28 +34,20 @@ export default function LooperPage() {
     return PROGRESSIONS[progIndex].degrees.map((deg) => diatonic[deg - 1]);
   }, [keyName, progIndex]);
 
-  const chordFreqs = (chordIdx: number) => {
-    const chord = chords[chordIdx];
-    const tones = triadTones(chord.root, chord.quality);
-    const freqs = tones.map((t) => pitchToFreq(t, 3));
-    freqs.push(pitchToFreq(chord.root, 4));
-    return freqs;
-  };
-
   useEffect(() => {
     if (!playing) {
       if (timerRef.current) clearInterval(timerRef.current);
       return;
     }
     const beatMs = 60000 / bpm;
-    const dur = (beatsPerChord * 60) / bpm;
     const onBeat = () => {
       const beat = beatRef.current;
       const withinChord = beat % beatsPerChord;
       if (withinChord === 0) {
         const chordIdx = Math.floor(beat / beatsPerChord) % chords.length;
         setStep(chordIdx);
-        playChord(chordFreqs(chordIdx), dur);
+        const c = chords[chordIdx];
+        strum(guitarTriadFreqs(c.root, c.quality), { stagger: 0.04 });
       }
       playClick(withinChord === 0);
       beatRef.current = beat + 1;
@@ -74,6 +65,8 @@ export default function LooperPage() {
       await unlockAudio(); // iOS: resume + unlock within the tap
       beatRef.current = 0;
       setStep(0);
+    } else {
+      dampStrings(); // silence ringing strings on stop
     }
     setPlaying((p) => !p);
   };

@@ -57,7 +57,7 @@ export default function ProfilePage() {
   const lessonsDone = progress.completedLessons.length;
   const chordsLearned = progress.completedLessons.filter((id) => {
     const l = ALL_LESSONS.find((x) => x.id === id);
-    return l?.chord;
+    return l?.chords?.length;
   }).length;
 
   return (

@@ -4,8 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
-import { lessonById, ALL_LESSONS, CHORDS } from "@/lib/curriculum";
-import { majorKeyChords, pitchOf, preferFlat, triadTones, pitchToFreq, chordVoicing, midiToFreq } from "@/lib/music";
+import { lessonById, ALL_LESSONS } from "@/lib/curriculum";
+import { CHORDS } from "@/lib/chords";
+import { majorKeyChords, pitchOf, preferFlat, guitarTriadFreqs, chordVoicing, midiToFreq } from "@/lib/music";
 import { armAudio, unlockAudio, strum } from "@/lib/audio";
 import ChordDiagram from "@/components/ChordDiagram";
 
@@ -37,12 +38,14 @@ export default function LessonPage() {
     );
   }
 
-  const { lesson } = found;
-  const chord = lesson.chord ? CHORDS[lesson.chord] : null;
+  const { lesson, module } = found;
+  const lessonChords = (lesson.chords ?? []).map((name) => ({ name, shape: CHORDS[name] })).filter((c) => c.shape);
+  const heroChord = lessonChords[0];
+  const moduleIdx = module.lessons.findIndex((l) => l.id === id);
   const idx = ALL_LESSONS.findIndex((l) => l.id === id);
+  const prevLesson = ALL_LESSONS[idx - 1];
   const nextLesson = ALL_LESSONS[idx + 1];
 
-  // Resolve a progression (key + scale degrees) into chord objects for playback.
   const progChords = lesson.progression
     ? lesson.progression.degrees.map((deg) => {
         const root = pitchOf(lesson.progression!.key) ?? 7;
@@ -50,21 +53,24 @@ export default function LessonPage() {
       })
     : [];
 
+  const hearChord = async (name: string) => {
+    await unlockAudio();
+    const shape = CHORDS[name];
+    if (shape) strum(chordVoicing(shape).map(midiToFreq));
+  };
+
   const playProgression = async () => {
     await unlockAudio();
     timeouts.current.forEach(clearTimeout);
     timeouts.current = [];
     progChords.forEach((c, i) => {
       const t = setTimeout(() => {
-        const tones = triadTones(c.root, c.quality);
-        const freqs = tones.map((tt) => pitchToFreq(tt, 3));
-        freqs.push(pitchToFreq(c.root, 4));
-        strum(freqs);
+        strum(guitarTriadFreqs(c.root, c.quality));
         setActiveChord(i);
-      }, i * 1400);
+      }, i * 1500);
       timeouts.current.push(t);
     });
-    timeouts.current.push(setTimeout(() => setActiveChord(null), progChords.length * 1400));
+    timeouts.current.push(setTimeout(() => setActiveChord(null), progChords.length * 1500));
   };
 
   const markComplete = async () => {
@@ -97,18 +103,25 @@ export default function LessonPage() {
           </span>
         </div>
         <div className="mx-auto mt-2 flex max-w-3xl flex-col items-center">
-          {chord ? (
-            <button onClick={async () => { await unlockAudio(); strum(chordVoicing(chord).map(midiToFreq)); }} aria-label="Hear the chord">
-              <ChordDiagram chord={chord} width={140} />
+          {heroChord ? (
+            <button onClick={() => hearChord(heroChord.name)} aria-label={`Hear ${heroChord.name}`}>
+              <ChordDiagram chord={heroChord.shape} width={140} />
             </button>
           ) : (
-            <div className="flex h-[150px] items-center justify-center">
-              <span className="font-display text-[64px] text-[#6b4a2e]">♪</span>
+            <div className="flex h-[120px] items-center justify-center">
+              <span className="font-display text-[56px] text-[#6b4a2e]">♪</span>
             </div>
           )}
           <h1 className="mt-1 text-center font-display text-[30px] font-semibold leading-none text-cream lg:text-[40px]">{lesson.title}</h1>
           <p className="mt-1.5 text-center text-[13px] text-[#c9b49a] lg:text-[15px]">{lesson.subtitle}</p>
-          {chord && <p className="mt-2 text-[11px] text-amber">tap the chord to hear it</p>}
+          {heroChord && <p className="mt-2 text-[11px] text-amber">tap the chord to hear it</p>}
+          {/* module progress dots */}
+          <div className="mt-4 flex items-center gap-1.5">
+            {module.lessons.map((l, i) => (
+              <span key={l.id} className="rounded-full" style={{ width: i === moduleIdx ? 18 : 6, height: 6, background: i === moduleIdx ? "#D4A96A" : "rgba(255,255,255,.25)", transition: "width .2s" }} />
+            ))}
+            <span className="ml-2 text-[11px] text-[#c9b49a]">Lesson {moduleIdx + 1} of {module.lessons.length}</span>
+          </div>
         </div>
       </div>
 
@@ -127,7 +140,7 @@ export default function LessonPage() {
           ))}
         </div>
 
-        <div className="pb-32 pt-6">
+        <div className="pb-36 pt-6">
           {/* objective */}
           <p className="mb-6 rounded-[12px] border border-border-warm bg-white p-4 text-sm text-cocoa">
             <span className="kicker mr-2 text-[10px] text-bronze">Goal</span>
@@ -146,8 +159,31 @@ export default function LessonPage() {
                   </div>
                 </div>
               ))}
+
+              {/* chords in this lesson */}
+              {lessonChords.length > 0 && (
+                <>
+                  <h3 className="kicker mb-3 mt-7 text-[12px] text-bronze">Chords in this lesson — tap to hear</h3>
+                  <div className="flex flex-wrap gap-3">
+                    {lessonChords.map(({ name, shape }) => (
+                      <button key={name} onClick={() => hearChord(name)} className="flex flex-col items-center rounded-[14px] border border-border-warm bg-white p-3 transition-transform active:scale-95">
+                        <ChordDiagram chord={shape} width={92} />
+                        <span className="mt-1 text-sm font-semibold text-espresso">{name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {lesson.theory && (
+                <div className="mt-6 rounded-[14px] border border-border-warm bg-white p-4">
+                  <div className="kicker mb-1.5 text-[10px] text-bronze">Theory corner</div>
+                  <p className="text-sm leading-relaxed text-cocoa">{lesson.theory}</p>
+                </div>
+              )}
+
               {lesson.tip && (
-                <div className="mt-2 rounded-[14px] p-4" style={{ background: "linear-gradient(155deg,#F3E7D4,#EFE0C9)", border: "1px solid #E5D8C0" }}>
+                <div className="mt-4 rounded-[14px] p-4" style={{ background: "linear-gradient(155deg,#F3E7D4,#EFE0C9)", border: "1px solid #E5D8C0" }}>
                   <span className="kicker mr-2 text-[10px] text-bronze">Tip</span>
                   <span className="text-sm text-cocoa">{lesson.tip}</span>
                 </div>
@@ -198,6 +234,22 @@ export default function LessonPage() {
               <Link href="/looper" className="mt-4 inline-block text-sm font-semibold text-bronze">Open the Progression Looper →</Link>
             </>
           )}
+
+          {/* prev / next */}
+          <div className="mt-10 flex items-center justify-between border-t border-border-warm pt-5">
+            {prevLesson ? (
+              <Link href={`/lesson/${prevLesson.id}`} className="min-w-0 text-left">
+                <span className="kicker block text-[10px] text-faint">← Previous</span>
+                <span className="block max-w-[140px] truncate text-sm font-semibold text-chestnut lg:max-w-[260px]">{prevLesson.title}</span>
+              </Link>
+            ) : <span />}
+            {nextLesson ? (
+              <Link href={`/lesson/${nextLesson.id}`} className="min-w-0 text-right">
+                <span className="kicker block text-[10px] text-faint">Next →</span>
+                <span className="block max-w-[140px] truncate text-sm font-semibold text-chestnut lg:max-w-[260px]">{nextLesson.title}</span>
+              </Link>
+            ) : <span />}
+          </div>
         </div>
       </div>
 

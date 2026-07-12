@@ -178,7 +178,7 @@ export default function TodayPage() {
                   <span className="flex h-8 w-8 flex-none items-center justify-center rounded-[9px]" style={{ background: "#F3E7D4" }}><PlayIcon size={15} color="#B8834A" /></span>
                   <div className="flex-1">
                     <div className="text-sm font-semibold text-espresso">{l.title}</div>
-                    <div className="text-xs text-muted">{l.kicker.split("·").pop()?.trim()} · {l.minutes} min</div>
+                    <div className="text-xs text-muted">{l.kicker?.split("·").pop()?.trim()} · {l.minutes} min</div>
                   </div>
                 </Link>
               ))}
